@@ -17,9 +17,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
+
+    Map<Integer, String> articleURLs = new HashMap<Integer, String>();
+    Map<Integer, String> articleTitles = new HashMap<Integer, String>();
+    ArrayList<Integer> articleIds = new ArrayList<Integer>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +56,10 @@ public class MainActivity extends AppCompatActivity {
 
                 //Log.i("articleTitle", articleTitle);
                 //Log.i("articleURL", articleURL);
+
+                articleIds.add(Integer.valueOf(articleID));
+                articleTitles.put(Integer.valueOf(articleID), articleTitle);
+                articleURLs.put(Integer.valueOf(articleID), articleURL);
             }
         } catch (Exception e) {
             e.printStackTrace();
