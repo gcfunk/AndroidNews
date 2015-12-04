@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,7 +25,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,12 +34,20 @@ public class MainActivity extends AppCompatActivity {
 
     SQLiteDatabase articlesDB;
 
+    ListView listView;
+    ArrayList<String> titles = new ArrayList<String>();
+    ArrayAdapter arrayAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        listView = (ListView) findViewById(R.id.listView);
+        arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, titles);
+        listView.setAdapter(arrayAdapter);
 
         articlesDB = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
         articlesDB.execSQL("CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY, articleID, INTEGER, url VARCHAR, title VARCHAR, content VARCHAR)");
@@ -84,16 +93,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            Cursor c = articlesDB.rawQuery("SELECT * FROM articles", null);
+            Cursor c = articlesDB.rawQuery("SELECT * FROM articles ORDER BY articleID DESC", null);
             int articleIDIndex = c.getColumnIndex("articleID");
             int urlIndex = c.getColumnIndex("url");
             int titleIndex = c.getColumnIndex("title");
             c.moveToFirst();
+            titles.clear();
             do {
-                Log.i("articleID", Integer.toString(c.getInt(articleIDIndex)));
-                Log.i("articleUrl", c.getString(urlIndex));
-                Log.i("articleTitle", c.getString(titleIndex));
+                //Log.i("articleID", Integer.toString(c.getInt(articleIDIndex)));
+                //Log.i("articleUrl", c.getString(urlIndex));
+                //Log.i("articleTitle", c.getString(titleIndex));
+
+                titles.add(c.getString(titleIndex));
             } while (c.moveToNext());
+
+            arrayAdapter.notifyDataSetChanged();
         } catch (Exception e) {
             e.printStackTrace();
         }
