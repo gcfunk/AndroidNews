@@ -1,5 +1,8 @@
 package com.example.gregfunk.androidnews;
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -28,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
     Map<Integer, String> articleTitles = new HashMap<Integer, String>();
     ArrayList<Integer> articleIds = new ArrayList<Integer>();
 
+    SQLiteDatabase articlesDB;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,12 +40,17 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        articlesDB = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
+        articlesDB.execSQL("CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY, articleID, INTEGER, url VARCHAR, title VARCHAR, content VARCHAR)");
+
         DownloadTask task = new DownloadTask();
         String result = null;
         try {
             result = task.execute("https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty").get();
 
             //Log.i("result", result);
+
+            articlesDB.execSQL("DELETE FROM articles");
 
             JSONArray jsonArray = new JSONArray(result);
             for (int i=0; i < 20; i++) {
@@ -50,17 +60,40 @@ public class MainActivity extends AppCompatActivity {
 
                 DownloadTask getArticle = new DownloadTask();
                 String articleInfo = getArticle.execute("https://hacker-news.firebaseio.com/v0/item/" + jsonArray.getString(i) + ".json?print=pretty").get();
+
+                //Log.i("articleInfo", articleInfo);
+
                 JSONObject jsonObject = new JSONObject(articleInfo);
-                String articleTitle = jsonObject.getString("title");
-                String articleURL = jsonObject.getString("url");
+                if (jsonObject.getString("type").equals("story")) {
+                    String articleTitle = jsonObject.getString("title");
+                    String articleURL = jsonObject.getString("url");
 
-                //Log.i("articleTitle", articleTitle);
-                //Log.i("articleURL", articleURL);
+                    //Log.i("articleTitle", articleTitle);
+                    //Log.i("articleURL", articleURL);
 
-                articleIds.add(Integer.valueOf(articleID));
-                articleTitles.put(Integer.valueOf(articleID), articleTitle);
-                articleURLs.put(Integer.valueOf(articleID), articleURL);
+                    articleIds.add(Integer.valueOf(articleID));
+                    articleTitles.put(Integer.valueOf(articleID), articleTitle);
+                    articleURLs.put(Integer.valueOf(articleID), articleURL);
+
+                    String sql = "INSERT INTO articles (articleID, url, title) VALUES (?, ?, ?)";
+                    SQLiteStatement statement = articlesDB.compileStatement(sql);
+                    statement.bindString(1, articleID);
+                    statement.bindString(2, articleURL);
+                    statement.bindString(3, articleTitle);
+                    statement.execute();
+                }
             }
+
+            Cursor c = articlesDB.rawQuery("SELECT * FROM articles", null);
+            int articleIDIndex = c.getColumnIndex("articleID");
+            int urlIndex = c.getColumnIndex("url");
+            int titleIndex = c.getColumnIndex("title");
+            c.moveToFirst();
+            do {
+                Log.i("articleID", Integer.toString(c.getInt(articleIDIndex)));
+                Log.i("articleUrl", c.getString(urlIndex));
+                Log.i("articleTitle", c.getString(titleIndex));
+            } while (c.moveToNext());
         } catch (Exception e) {
             e.printStackTrace();
         }
