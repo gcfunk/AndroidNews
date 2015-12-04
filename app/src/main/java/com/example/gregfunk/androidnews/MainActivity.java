@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     ListView listView;
     ArrayList<String> titles = new ArrayList<String>();
+    ArrayList<String> urls = new ArrayList<String>();
     ArrayAdapter arrayAdapter;
 
     @Override
@@ -48,6 +50,12 @@ public class MainActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.listView);
         arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, titles);
         listView.setAdapter(arrayAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //urls.get(position)
+            }
+        });
 
         articlesDB = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
         articlesDB.execSQL("CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY, articleID, INTEGER, url VARCHAR, title VARCHAR, content VARCHAR)");
@@ -99,12 +107,14 @@ public class MainActivity extends AppCompatActivity {
             int titleIndex = c.getColumnIndex("title");
             c.moveToFirst();
             titles.clear();
+            urls.clear();
             do {
                 //Log.i("articleID", Integer.toString(c.getInt(articleIDIndex)));
                 //Log.i("articleUrl", c.getString(urlIndex));
                 //Log.i("articleTitle", c.getString(titleIndex));
 
                 titles.add(c.getString(titleIndex));
+                urls.add(c.getString(urlIndex));
             } while (c.moveToNext());
 
             arrayAdapter.notifyDataSetChanged();
