@@ -9,6 +9,9 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -30,10 +33,24 @@ public class MainActivity extends AppCompatActivity {
         try {
             result = task.execute("https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty").get();
 
-            Log.i("result", result);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+            //Log.i("result", result);
+
+            JSONArray jsonArray = new JSONArray(result);
+            for (int i=0; i < 20; i++) {
+                //Log.i("ArticleID", jsonArray.getString(i));
+
+                String articleID = jsonArray.getString(i);
+
+                DownloadTask getArticle = new DownloadTask();
+                String articleInfo = getArticle.execute("https://hacker-news.firebaseio.com/v0/item/" + jsonArray.getString(i) + ".json?print=pretty").get();
+                JSONObject jsonObject = new JSONObject(articleInfo);
+                String articleTitle = jsonObject.getString("title");
+                String articleURL = jsonObject.getString("url");
+
+                //Log.i("articleTitle", articleTitle);
+                //Log.i("articleURL", articleURL);
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
