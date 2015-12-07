@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
                 while ((line = r.readLine()) != null) {
                     total.append(line);
                 }
+                result = total.toString();
 
                 articlesDB.execSQL("DELETE FROM articles");
 
