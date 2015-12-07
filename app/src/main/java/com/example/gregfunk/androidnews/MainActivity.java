@@ -27,6 +27,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,6 +41,30 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> titles = new ArrayList<String>();
     ArrayList<String> urls = new ArrayList<String>();
     ArrayAdapter arrayAdapter;
+
+    public void updateListView() {
+        try {
+            Cursor c = articlesDB.rawQuery("SELECT * FROM articles ORDER BY articleID DESC", null);
+            int articleIDIndex = c.getColumnIndex("articleID");
+            int urlIndex = c.getColumnIndex("url");
+            int titleIndex = c.getColumnIndex("title");
+            c.moveToFirst();
+            titles.clear();
+            urls.clear();
+            do {
+                //Log.i("articleID", Integer.toString(c.getInt(articleIDIndex)));
+                //Log.i("articleUrl", c.getString(urlIndex));
+                //Log.i("articleTitle", c.getString(titleIndex));
+
+                titles.add(c.getString(titleIndex));
+                urls.add(c.getString(urlIndex));
+            } while (c.moveToNext());
+
+            arrayAdapter.notifyDataSetChanged();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
 
         articlesDB = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
         articlesDB.execSQL("CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY, articleID, INTEGER, url VARCHAR, title VARCHAR, content VARCHAR)");
+
+        updateListView();
 
         DownloadTask task = new DownloadTask();
         String result = null;
@@ -104,23 +131,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            Cursor c = articlesDB.rawQuery("SELECT * FROM articles ORDER BY articleID DESC", null);
-            int articleIDIndex = c.getColumnIndex("articleID");
-            int urlIndex = c.getColumnIndex("url");
-            int titleIndex = c.getColumnIndex("title");
-            c.moveToFirst();
-            titles.clear();
-            urls.clear();
-            do {
-                //Log.i("articleID", Integer.toString(c.getInt(articleIDIndex)));
-                //Log.i("articleUrl", c.getString(urlIndex));
-                //Log.i("articleTitle", c.getString(titleIndex));
-
-                titles.add(c.getString(titleIndex));
-                urls.add(c.getString(urlIndex));
-            } while (c.moveToNext());
-
-            arrayAdapter.notifyDataSetChanged();
+            updateListView();
         } catch (Exception e) {
             e.printStackTrace();
         }
